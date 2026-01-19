@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+    <html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <!-- Essential viewport meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <!-- Microsoft Edge compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Support -->
+    <meta name="theme-color" content="#1976d2" />
+    <meta name="description" content="AI Application with full-stack capabilities" />
+    
+    <!-- Apple/Safari specific tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Admin login</title>
+</head>
+<body>
+    <h2>Admin Login</h2>
+
+    <input id="username" placeholder="Username"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
+
+    <button onclick="login()">Login</button>
+
+    <h3 id="msg"></h3>
+
+    <script>
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById("msg");
+
+            fetch("http://127.0.0.1:5000/login", {
+                method:"POST",
+                headers:{"Content-Type": "application/json"},
+                credentials: "include", // corrected line
+                body: JSON.stringify({username, password})
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("invalid Login");
+                return response.json();
+            })
+            .then(data =>{
+                document.getElementById("msg").innerText - data.message;
+                //Redirect to admin page
+                window.location.href = "history.html";
+            })
+            .catch(()=>{
+                document.getElementById("msg").innerText = "Login failed. Please check your credentials.";
+            });
+        }
+    </script>
+           
+</body>
+</html>

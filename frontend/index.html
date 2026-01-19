@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+    <html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <!-- Essential viewport meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <!-- Microsoft Edge compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Support -->
+    <meta name="theme-color" content="#1976d2" />
+    <meta name="description" content="AI Application with full-stack capabilities" />
+    
+    <!-- Apple/Safari specific tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Loan Approval AI</title>
+</head>
+<body>
+    <h2>🏦 Loan Approval System</h2>
+
+    <label>Income:</label><br>
+    <input id="income" type="number" placeholder="income"/><br><br>
+
+    <label>Age:</label><br>
+    <input id="age" type="number" placeholder="age"/><br><br>
+
+    <label>Loan Amount:</label><br>
+    <input id="loan_amount" type="number" placeholder="loan amount"/><br><br>
+
+    <label>Credit Score:</label><br>
+    <input id="credit_score" type="number" placeholder="credit score"/><br><br>
+
+    <button onclick="applyLoan()">Apply</button>
+
+    <h3 id="result"></h3>
+    <p id="reason"></p>
+
+    <script>
+        function applyLoan() {
+            const income = document.getElementById('income').value;
+            const age = document.getElementById('age').value;
+            const loan_amount = document.getElementById('loan_amount').value;
+            const credit_score = document.getElementById('credit_score').value;
+
+            if (!income || !age || !loan_amount || !credit_score) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            fetch("http://127.0.0.1:5000/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    income, 
+                    age, 
+                    loan_amount, 
+                    credit_score 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = data.decision;
+                document.getElementById('reason').innerText = data.reason;
+
+                result.innerText = data.decision;
+                result.innerText = data.reason;
+
+                result.style.color = data.decision === "Approved" ? "green" : "red";
+            });
+        }
+    </script>
+           
+</body>
+</html>
