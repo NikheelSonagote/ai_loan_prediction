@@ -11,7 +11,6 @@
 
     <!-- PWA / Mobile -->
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1976d2" />
     <meta name="description" content="AI Application with full-stack capabilities" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -108,7 +107,7 @@ function clearData() {
     fetch(`${API_BASE}/clear`, {
     method: "POST",
     credentials: "include"
-});
+})
     .then(res => {
         if (!res.ok) throw new Error("Failed to clear data");
         return res.json();
@@ -124,7 +123,7 @@ function logout() {
     fetch(`${API_BASE}/logout`, {
     method: "POST",
     credentials: "include"
-});
+})
     .then(() => {
         window.location.href = "login.html";
     });
