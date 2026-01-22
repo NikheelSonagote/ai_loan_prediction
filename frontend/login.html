@@ -30,12 +30,14 @@
     <h3 id="msg"></h3>
 
     <script>
+        const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
+
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const msg = document.getElementById("msg");
 
-            fetch("http://127.0.0.1:5000/login", {
+            fetch(`${API_BASE}/login`, {
                 method:"POST",
                 headers:{"Content-Type": "application/json"},
                 credentials: "include", // corrected line
@@ -54,6 +56,7 @@
                 document.getElementById("msg").innerText = "Login failed. Please check your credentials.";
             });
         }
+
     </script>
            
 </body>

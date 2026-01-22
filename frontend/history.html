@@ -60,7 +60,9 @@
 
 
 <script>
-fetch("http://127.0.0.1:5000/applications", {
+const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
+
+fetch(`${API_BASE}/applications`, {
     credentials: "include"   // 👈 send session cookie
 })
 .then(res => {
@@ -103,10 +105,10 @@ fetch("http://127.0.0.1:5000/applications", {
 function clearData() {
     if (!confirm("Are you sure you want to clear all applications?")) return;
 
-    fetch("http://127.0.0.1:5000/clear", {
-        method: "POST",
-        credentials: "include"
-    })
+    fetch(`${API_BASE}/clear`, {
+    method: "POST",
+    credentials: "include"
+});
     .then(res => {
         if (!res.ok) throw new Error("Failed to clear data");
         return res.json();
@@ -119,10 +121,10 @@ function clearData() {
 }
 
 function logout() {
-    fetch("http://127.0.0.1:5000/logout", {
-        method: "POST",
-        credentials: "include"
-    })
+    fetch(`${API_BASE}/logout`, {
+    method: "POST",
+    credentials: "include"
+});
     .then(() => {
         window.location.href = "login.html";
     });
@@ -130,9 +132,8 @@ function logout() {
 
 
 function downloadCSV() {
-    window.location.href = "http://127.0.0.1:5000/export";
+    window.location.href = `${API_BASE}/export`;
 }
-
 
 </script>
 </body>
