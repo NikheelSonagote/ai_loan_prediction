@@ -4,6 +4,9 @@ from flask_cors import CORS
 import joblib
 import sqlite3
 import os
+import csv
+from flask import Response
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "loans.db")
@@ -25,7 +28,7 @@ model = joblib.load('loan_model.pkl')
 
 @app.route("/")
 def home():
-    return "Loan AI server is running"
+    return "Loan AI backend is running 🚀"
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -128,6 +131,36 @@ def get_applications():
     except Exception as e:
         print("🔥 APPLICATIONS ERROR:", e)
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/export", methods=["GET"])
+def export_csv():
+    if not session.get("admin"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT income, age, loan_amount, credit_score, decision, reason
+        FROM applications
+        ORDER BY id DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    def generate():
+        yield "Income,Age,Loan Amount,Credit Score,Decision,Reason\n"
+        for row in rows:
+            yield f"{row[0]},{row[1]},{row[2]},{row[3]},{row[4]},{row[5]}\n"
+
+    return Response(
+        generate(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=loan_applications.csv"
+        }
+    )
+
 
 
 @app.route("/clear", methods=["POST"])

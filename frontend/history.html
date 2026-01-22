@@ -39,7 +39,10 @@
 <h2>📋 Loan Applications (Admin Panel)</h2>
 
 <button onclick="clearData()">Clear All Applications</button><br><br>
-<button onclick="logout()">🚪 Logout</button>
+<button onclick="logout()">🚪 Logout</button><br>
+<button onclick="downloadCSV()">⬇ Download CSV</button>
+<br><br>
+
 <br><br>
 <table>
     <thead>
@@ -124,6 +127,12 @@ function logout() {
         window.location.href = "login.html";
     });
 }
+
+
+function downloadCSV() {
+    window.location.href = "http://127.0.0.1:5000/export";
+}
+
 
 </script>
 </body>
