@@ -12,6 +12,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "loans.db")
  
 app = Flask(__name__)
+
+app.secret_key = "super_secret_key_123"
+
+app.config.update(
+    SESSION_COOKIE_SAMESITE="None",   # 👈 allow cross-site
+    SESSION_COOKIE_SECURE=True        # 👈 required for HTTPS
+)
+
 app.secret_key = 'super_secret_key_123'  # For session management 
 CORS(
     app,
