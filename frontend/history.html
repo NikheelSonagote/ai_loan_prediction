@@ -1,91 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
 
     <!-- Essential viewport meta tag -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Browser compatibility -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- PWA / Mobile -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="AI Application with full-stack capabilities" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="description"
+      content="AI Application with full-stack capabilities"
+    />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
 
     <title>Loan Applications History</title>
 
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background: #f2f2f2;
-        }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background: #f2f2f2;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
+    <h2>📋 Loan Applications (Admin Panel)</h2>
 
-<h2>📋 Loan Applications (Admin Panel)</h2>
+    <button onclick="clearData()">Clear All Applications</button><br /><br />
+    <button onclick="logout()">🚪 Logout</button><br />
+    <button onclick="downloadCSV()">⬇ Download CSV</button>
+    <br /><br />
 
-<button onclick="clearData()">Clear All Applications</button><br><br>
-<button onclick="logout()">🚪 Logout</button><br>
-<button onclick="downloadCSV()">⬇ Download CSV</button>
-<br><br>
-
-<br><br>
-<table>
-    <thead>
+    <br /><br />
+    <table>
+      <thead>
         <tr>
-            <th>Income</th>
-            <th>Age</th>
-            <th>Loan</th>
-            <th>Credit_Score</th>
-            <th>Decision</th>
-            <th>Reason</th>
+          <th>Income</th>
+          <th>Age</th>
+          <th>Loan</th>
+          <th>Credit_Score</th>
+          <th>Decision</th>
+          <th>Reason</th>
         </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
 
+    <script>
+      const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
 
-<script>
-const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
+      fetch(`${API_BASE}/applications`, {
+        credentials: "include", // 👈 send session cookie
+      })
+        .then((res) => {
+          // 🔒 Handle unauthorized access FIRST
+          if (res.status === 401 || res.status === 403) {
+            alert("Session expired. Please login again.");
+            window.location.href = "login.html";
+            throw new Error("Unauthorized");
+          }
 
-fetch(`${API_BASE}/applications`, {
-    credentials: "include"   // 👈 send session cookie
-})
-.then(res => {
-    // 🔒 Handle unauthorized access FIRST
-    if (res.status === 401 || res.status === 403) {
-        alert("Session expired. Please login again.");
-        window.location.href = "login.html";
-        throw new Error("Unauthorized");
-    }
+          // 🔴 Handle missing route
+          if (!res.ok) {
+            throw new Error("Server error");
+          }
 
-    // 🔴 Handle missing route
-    if (!res.ok) {
-        throw new Error("Server error");
-    }
+          return res.json();
+        })
+        .then((data) => {
+          const body = document.getElementById("tableBody");
+          body.innerHTML = "";
 
-    return res.json();
-})
-.then(data => {
-    const body = document.getElementById("tableBody");
-    body.innerHTML = "";
-
-    data.forEach(app => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
+          data.forEach((app) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
             <td>${app.income}</td>
             <td>${app.age}</td>
             <td>${app.loan_amount}</td>
@@ -95,47 +100,53 @@ fetch(`${API_BASE}/applications`, {
             </td>
             <td>${app.reason}</td>
         `;
-        body.appendChild(row);
-    });
-})
-.catch(err => console.log("Fetch stopped:", err.message));
+            body.appendChild(row);
+          });
+        })
+        .catch((err) => console.log("Fetch stopped:", err.message));
 
+      function clearData() {
+        if (!confirm("Are you sure you want to clear all applications?"))
+          return;
 
-function clearData() {
-    if (!confirm("Are you sure you want to clear all applications?")) return;
+        fetch(`${API_BASE}/clear`, {
+          method: "POST",
+          credentials: "include",
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to clear data");
+            return res.json();
+          })
+          .then(() => {
+            alert("All applications cleared");
+            location.reload();
+          })
+          .catch((err) => alert(err.message));
+      }
 
-    fetch(`${API_BASE}/clear`, {
-    method: "POST",
-    credentials: "include"
-})
-    .then(res => {
-        if (!res.ok) throw new Error("Failed to clear data");
-        return res.json();
-    })
-    .then(() => {
-        alert("All applications cleared");
-        location.reload();
-    })
-    .catch(err => alert(err.message));
-}
+      function logout() {
+        fetch(`${API_BASE}/logout`, {
+          method: "POST",
+          credentials: "include",
+        }).then(() => {
+          window.location.href = "login.html";
+        });
+      }
 
-function logout() {
-    fetch(`${API_BASE}/logout`, {
-    method: "POST",
-    credentials: "include"
-})
-    .then(() => {
-        window.location.href = "login.html";
-    });
-}
-
-
-function downloadCSV() {
-    window.location.href = `${API_BASE}/export`;
-    credentials: "include"
-
-}
-
-</script>
-</body>
+      function downloadCSV() {
+        fetch(`${API_BASE}/export`, {
+          credentials: "include",
+        })
+          .then((res) => res.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "loan_applications.csv";
+            a.click();
+            window.URL.revokeObjectURL(url);
+          });
+      }
+    </script>
+  </body>
 </html>

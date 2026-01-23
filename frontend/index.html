@@ -53,7 +53,7 @@
     <p id="reason"></p>
 
     <script>
-    const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
+      const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
 
       function applyLoan() {
         const income = document.getElementById("income").value;
@@ -66,7 +66,7 @@
           return;
         }
 
-        fetch("http://127.0.0.1:5000/predict", {
+        fetch(`${API_BASE}/predict`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -83,10 +83,7 @@
             document.getElementById("result").innerText = data.decision;
             document.getElementById("reason").innerText = data.reason;
 
-            result.innerText = data.decision;
-            result.innerText = data.reason;
-
-            result.style.color = data.decision === "Approved" ? "green" : "red";
+            document.getElementById("result").style.color = data.decision === "Approved" ? "green" : "red";
           });
       }
     </script>
