@@ -144,6 +144,33 @@ def get_applications():
     except Exception as e:
         print("🔥 APPLICATIONS ERROR:", e)
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+    if not session.get("admin"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT decision, COUNT(*) FROM applications GROUP BY decision")
+    decision_stats = cursor.fetchall()
+
+    cursor.execute("SELECT AVG(loan_amount) FROM applications")
+    avg_loan = cursor.fetchone()[0] or 0
+
+    cursor.execute("SELECT COUNT(*) FROM applications")
+    total_apps = cursor.fetchone()[0]
+
+    conn.close()
+
+    return jsonify({
+        "decisions": {d[0]: d[1] for d in decision_stats},
+        "average_loan": round(avg_loan, 2),
+        "total_applications": total_apps
+    })
+
     
 @app.route("/export", methods=["GET"])
 def export_csv():

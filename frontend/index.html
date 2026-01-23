@@ -26,7 +26,7 @@
   </head>
   <body>
     <h2>🏦 Loan Approval System</h2>
-
+    
     <label>Income:</label><br />
     <input id="income" type="number" placeholder="income" /><br /><br />
 
@@ -71,6 +71,7 @@
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // 👈 send session cookie
           body: JSON.stringify({
             income,
             age,
@@ -83,7 +84,8 @@
             document.getElementById("result").innerText = data.decision;
             document.getElementById("reason").innerText = data.reason;
 
-            document.getElementById("result").style.color = data.decision === "Approved" ? "green" : "red";
+            document.getElementById("result").style.color =
+              data.decision === "Approved" ? "green" : "red";
           });
       }
     </script>
