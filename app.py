@@ -78,7 +78,7 @@ def predict():
 
         if income < 30000:
             reasons.append("Income is too low")
-        if credit_score < 630:
+        if credit_score < 700:
             reasons.append("Credit score is below 630")
 
         if loan_amount > income * 5:
