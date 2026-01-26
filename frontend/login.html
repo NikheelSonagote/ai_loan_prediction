@@ -45,21 +45,12 @@
         fetch(`${API_BASE}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // corrected line
           body: JSON.stringify({ username, password }),
         })
-          .then((response) => {
-            if (!response.ok) throw new Error("invalid Login");
-            return response.json();
-          })
+          .then((res) => res.json())
           .then((data) => {
-            document.getElementById("msg").innerText = data.message;
-            //Redirect to admin page
+            localStorage.setItem("token", data.token);
             window.location.href = "history.html";
-          })
-          .catch(() => {
-            document.getElementById("msg").innerText =
-              "Login failed. Please check your credentials.";
           });
       }
     </script>
