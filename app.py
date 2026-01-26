@@ -16,9 +16,11 @@ app = Flask(__name__)
 app.secret_key = "super_secret_key_123"
 
 app.config.update(
-    SESSION_COOKIE_SAMESITE="None",   # 👈 allow cross-site
-    SESSION_COOKIE_SECURE=True        # 👈 required for HTTPS
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_DOMAIN=".onrender.com"   # 👈 ADD THIS
 )
+
 
 app.secret_key = 'super_secret_key_123'  # For session management 
 CORS(
