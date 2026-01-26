@@ -154,37 +154,34 @@
           });
       }
 
-      setTimeout(() => {
-        fetch(`${API_BASE}/stats`, { credentials: "include" })
-          .then((res) => {
-            if (!res.ok) throw new Error("Unauthorized");
-            return res.json();
-          })
-          .then((data) => {
-            document.getElementById("total").innerText =
-              data.total_applications;
-            document.getElementById("avgLoan").innerText = data.average_loan;
+      const token = localStorage.getItem("token");
 
-            const ctx = document
-              .getElementById("decisionChart")
-              .getContext("2d");
-            new Chart(ctx, {
-              type: "bar",
-              data: {
-                labels: Object.keys(data.decisions),
-                datasets: [
-                  {
-                    label: "Loan Decisions",
-                    data: Object.values(data.decisions),
-                  },
-                ],
-              },
-            });
-          })
-          .catch(() => {
-            console.log("Dashboard not loaded (not logged in)");
+      fetch(`${API_BASE}/stats`, {
+        headers: {
+          Authorization: token,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Unauthorized");
+          return res.json();
+        })
+        .then((data) => {
+          document.getElementById("total").innerText = data.total_applications;
+          document.getElementById("avgLoan").innerText = data.average_loan;
+
+          new Chart(document.getElementById("decisionChart"), {
+            type: "bar",
+            data: {
+              labels: Object.keys(data.decisions),
+              datasets: [
+                {
+                  label: "Loan Decisions",
+                  data: Object.values(data.decisions),
+                },
+              ],
+            },
           });
-      }, 300); // 👈 300ms delay
+        });
     </script>
   </body>
 </html>
