@@ -6,8 +6,11 @@ import sqlite3
 import os
 import csv
 from flask import Response
+import secrets
 
 
+
+ADMIN_TOKEN = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "loans.db")
  
@@ -148,30 +151,33 @@ def get_applications():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/stats", methods=["GET"])
+@app.route("/stats")
 def stats():
-    if not session.get("admin"):
+    token = request.headers.get("Authorization")
+
+    if token != ADMIN_TOKEN:
         return jsonify({"error": "Unauthorized"}), 403
 
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute("SELECT decision, COUNT(*) FROM applications GROUP BY decision")
-    decision_stats = cursor.fetchall()
+    decisions = cursor.fetchall()
 
     cursor.execute("SELECT AVG(loan_amount) FROM applications")
     avg_loan = cursor.fetchone()[0] or 0
 
     cursor.execute("SELECT COUNT(*) FROM applications")
-    total_apps = cursor.fetchone()[0]
+    total = cursor.fetchone()[0]
 
     conn.close()
 
     return jsonify({
-        "decisions": {d[0]: d[1] for d in decision_stats},
+        "decisions": dict(decisions),
         "average_loan": round(avg_loan, 2),
-        "total_applications": total_apps
+        "total_applications": total
     })
+
 
     
 @app.route("/export", methods=["GET"])
@@ -218,18 +224,15 @@ def clear_applications():
 
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    print("LOGIN DATA RECEIVED:", data)
+    global ADMIN_TOKEN
+    data = request.json
 
-    username = data.get("username")
-    password = data.get("password")
+    if data["username"] == "admin" and data["password"] == "admin123":
+        ADMIN_TOKEN = secrets.token_hex(16)
+        return jsonify({"token": ADMIN_TOKEN})
 
-    #Simple admin credentials (for login)
-    if username == "admin" and password == "admin123":
-        session["admin"] = True
-        return jsonify({"message": "Login successful"})
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
+    return jsonify({"error": "Invalid credentials"}), 401
+
 
 @app.route("/logout", methods=["POST"])
 def logout():
