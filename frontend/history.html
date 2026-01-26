@@ -52,8 +52,7 @@
     <p>Average Loan Amount: <b id="avgLoan"></b></p>
 
     <canvas id="decisionChart" width="400" height="200"></canvas>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="chart.min.js"></script>
 
     <br /><br />
     <table>
@@ -155,35 +154,37 @@
           });
       }
 
-      fetch(`${API_BASE}/stats`, { credentials: "include" })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error("Unauthorized or server error");
-          }
-          return res.json();
-        })
-        .then((data) => {
-          document.getElementById("total").innerText = data.total_applications;
-          document.getElementById("avgLoan").innerText = data.average_loan;
+      setTimeout(() => {
+        fetch(`${API_BASE}/stats`, { credentials: "include" })
+          .then((res) => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+          })
+          .then((data) => {
+            document.getElementById("total").innerText =
+              data.total_applications;
+            document.getElementById("avgLoan").innerText = data.average_loan;
 
-          const ctx = document.getElementById("decisionChart").getContext("2d");
-
-          new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels: Object.keys(data.decisions),
-              datasets: [
-                {
-                  label: "Loan Decisions",
-                  data: Object.values(data.decisions),
-                },
-              ],
-            },
+            const ctx = document
+              .getElementById("decisionChart")
+              .getContext("2d");
+            new Chart(ctx, {
+              type: "bar",
+              data: {
+                labels: Object.keys(data.decisions),
+                datasets: [
+                  {
+                    label: "Loan Decisions",
+                    data: Object.values(data.decisions),
+                  },
+                ],
+              },
+            });
+          })
+          .catch(() => {
+            console.log("Dashboard not loaded (not logged in)");
           });
-        })
-        .catch(() => {
-          console.log("Dashboard not loaded (not logged in)");
-        });
+      }, 300); // 👈 300ms delay
     </script>
   </body>
 </html>
