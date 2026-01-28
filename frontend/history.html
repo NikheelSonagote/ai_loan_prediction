@@ -155,6 +155,7 @@
       }
 
       const token = localStorage.getItem("token");
+      console.log("FRONTEND TOKEN:", token);
 
       fetch(`${API_BASE}/stats`, {
         headers: {
@@ -166,21 +167,37 @@
           return res.json();
         })
         .then((data) => {
-          document.getElementById("total").innerText = data.total_applications;
-          document.getElementById("avgLoan").innerText = data.average_loan;
+          console.log("STATS DATA:", data); // 👈 IMPORTANT DEBUG
 
-          new Chart(document.getElementById("decisionChart"), {
+          const labels = Object.keys(data.decisions || {});
+          const values = Object.values(data.decisions || {});
+
+          if (labels.length === 0) {
+            console.warn("No data to show in chart");
+            return;
+          }
+
+          const ctx = document.getElementById("decisionChart").getContext("2d");
+
+          new Chart(ctx, {
             type: "bar",
             data: {
-              labels: Object.keys(data.decisions),
+              labels: labels,
               datasets: [
                 {
                   label: "Loan Decisions",
-                  data: Object.values(data.decisions),
+                  data: values,
+                  backgroundColor: ["green", "red"],
                 },
               ],
             },
+            options: {
+              responsive: true,
+            },
           });
+        })
+        .catch((err) => {
+          console.error("Chart error:", err);
         });
     </script>
   </body>
