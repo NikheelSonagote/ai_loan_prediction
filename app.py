@@ -155,28 +155,31 @@ def get_applications():
 def stats():
     token = request.headers.get("Authorization")
 
-    if token != ADMIN_TOKEN:
+    print("RECEIVED TOKEN:", token)   # 👈 DEBUG LINE
+
+    if not token or token != ADMIN_TOKEN:
         return jsonify({"error": "Unauthorized"}), 403
 
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
 
     cursor.execute("SELECT decision, COUNT(*) FROM applications GROUP BY decision")
-    decisions = cursor.fetchall()
+    decision_stats = cursor.fetchall()
 
     cursor.execute("SELECT AVG(loan_amount) FROM applications")
     avg_loan = cursor.fetchone()[0] or 0
 
     cursor.execute("SELECT COUNT(*) FROM applications")
-    total = cursor.fetchone()[0]
+    total_apps = cursor.fetchone()[0]
 
     conn.close()
 
     return jsonify({
-        "decisions": dict(decisions),
+        "decisions": {d[0]: d[1] for d in decision_stats},
         "average_loan": round(avg_loan, 2),
-        "total_applications": total
+        "total_applications": total_apps
     })
+
 
 
     
