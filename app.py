@@ -57,28 +57,59 @@ def predict():
     return jsonify({"decision": prediction, "reason": reason})
 
 
-# ---------- APPLICATIONS ----------
-@app.route("/applications")
-def applications():
-    token = request.headers.get("Authorization")
-    if token != ADMIN_TOKEN:
-        return jsonify({"error": "Unauthorized"}), 403
+# ---------------- LOAN PREDICTION (FIXED LOGIC) ----------------
+@app.route("/predict", methods=["POST"])
+def predict():
+    data = request.json
 
+    income = float(data["income"])
+    age = int(data["age"])
+    loan_amount = float(data["loan_amount"])
+    credit_score = int(data["credit_score"])
+
+    # ---- 1️⃣ ML PREDICTION ----
+    ml_prediction = model.predict([[income, age, loan_amount, credit_score]])[0]
+
+    # ---- 2️⃣ BUSINESS SAFETY RULES (IMPORTANT FIX) ----
+    decision = ml_prediction
+    reason = ""
+
+    # Rule 1: Credit score too low
+    if credit_score < 600:
+        decision = "Rejected"
+        reason = "Rejected due to low credit score"
+
+    # Rule 2: Loan too high compared to income
+    elif loan_amount > income * 10:
+        decision = "Rejected"
+        reason = "Rejected due to loan amount too high compared to income"
+
+    # Rule 3: Age risk (optional)
+    elif age < 21:
+        decision = "Rejected"
+        reason = "Rejected due to age below minimum eligibility"
+
+    # Approved case
+    else:
+        decision = "Approved"
+        reason = "Approved based on acceptable income, credit score, and loan ratio"
+
+    # ---- 3️⃣ SAVE TO DATABASE ----
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
     cursor.execute("""
-        SELECT income, age, loan_amount, credit_score, decision, reason
-        FROM applications ORDER BY id DESC
-    """)
-    rows = cursor.fetchall()
+        INSERT INTO applications (income, age, loan_amount, credit_score, decision, reason)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (income, age, loan_amount, credit_score, decision, reason))
+
+    conn.commit()
     conn.close()
 
-    return jsonify([
-        dict(
-            income=r[0], age=r[1], loan_amount=r[2],
-            credit_score=r[3], decision=r[4], reason=r[5]
-        ) for r in rows
-    ])
+    return jsonify({
+        "decision": decision,
+        "reason": reason
+    })
 
 
 # ---------- STATS ----------
