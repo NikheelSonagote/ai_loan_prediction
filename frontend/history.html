@@ -69,136 +69,76 @@
       <tbody id="tableBody"></tbody>
     </table>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script>
       const API_BASE = "https://ai-loan-prediction-a3gd.onrender.com";
-
-      fetch(`${API_BASE}/applications`, {
-        credentials: "include", // 👈 send session cookie
-      })
-        .then((res) => {
-          // 🔒 Handle unauthorized access FIRST
-          if (res.status === 401 || res.status === 403) {
-            alert("Session expired. Please login again.");
-            window.location.href = "login.html";
-            throw new Error("Unauthorized");
-          }
-
-          // 🔴 Handle missing route
-          if (!res.ok) {
-            throw new Error("Server error");
-          }
-
-          return res.json();
-        })
-        .then((data) => {
-          const body = document.getElementById("tableBody");
-          body.innerHTML = "";
-
-          data.forEach((app) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-            <td>${app.income}</td>
-            <td>${app.age}</td>
-            <td>${app.loan_amount}</td>
-            <td>${app.credit_score}</td>
-            <td style="color:${app.decision === "Approved" ? "green" : "red"}">
-                ${app.decision}
-            </td>
-            <td>${app.reason}</td>
-        `;
-            body.appendChild(row);
-          });
-        })
-        .catch((err) => console.log("Fetch stopped:", err.message));
-
-      function clearData() {
-        if (!confirm("Are you sure you want to clear all applications?"))
-          return;
-
-        fetch(`${API_BASE}/clear`, {
-          method: "POST",
-          credentials: "include",
-        })
-          .then((res) => {
-            if (!res.ok) throw new Error("Failed to clear data");
-            return res.json();
-          })
-          .then(() => {
-            alert("All applications cleared");
-            location.reload();
-          })
-          .catch((err) => alert(err.message));
-      }
-
-      function logout() {
-        fetch(`${API_BASE}/logout`, {
-          method: "POST",
-          credentials: "include",
-        }).then(() => {
-          window.location.href = "login.html";
-        });
-      }
-
-      function downloadCSV() {
-        fetch(`${API_BASE}/export`, {
-          credentials: "include",
-        })
-          .then((res) => res.blob())
-          .then((blob) => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "loan_applications.csv";
-            a.click();
-            window.URL.revokeObjectURL(url);
-          });
-      }
-
       const token = localStorage.getItem("token");
-      console.log("FRONTEND TOKEN:", token);
 
-      fetch(`${API_BASE}/stats`, {
-        headers: {
-          Authorization: token,
-        },
+      if (!token) {
+        alert("Please login again");
+        window.location.href = "login.html";
+      }
+
+      // ---- LOAD TABLE ----
+      fetch(`${API_BASE}/applications`, {
+        headers: { Authorization: token },
       })
         .then((res) => {
           if (!res.ok) throw new Error("Unauthorized");
           return res.json();
         })
         .then((data) => {
-          console.log("STATS DATA:", data); // 👈 IMPORTANT DEBUG
+          const body = document.getElementById("tableBody");
+          body.innerHTML = "";
+          data.forEach((app) => {
+            body.innerHTML += `
+      <tr>
+        <td>${app.income}</td>
+        <td>${app.age}</td>
+        <td>${app.loan_amount}</td>
+        <td>${app.credit_score}</td>
+        <td>${app.decision}</td>
+        <td>${app.reason}</td>
+      </tr>`;
+          });
+        });
 
-          const labels = Object.keys(data.decisions || {});
-          const values = Object.values(data.decisions || {});
+      // ---- DASHBOARD ----
+      fetch(`${API_BASE}/stats`, {
+        headers: { Authorization: token },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("total").innerText = data.total_applications;
+          document.getElementById("avgLoan").innerText = data.average_loan;
 
-          if (labels.length === 0) {
-            console.warn("No data to show in chart");
-            return;
-          }
-
-          const ctx = document.getElementById("decisionChart").getContext("2d");
-
-          new Chart(ctx, {
+          new Chart(document.getElementById("decisionChart"), {
             type: "bar",
             data: {
-              labels: labels,
+              labels: Object.keys(data.decisions),
               datasets: [
                 {
                   label: "Loan Decisions",
-                  data: values,
-                  backgroundColor: ["green", "red"],
+                  data: Object.values(data.decisions),
                 },
               ],
             },
-            options: {
-              responsive: true,
-            },
           });
-        })
-        .catch((err) => {
-          console.error("Chart error:", err);
         });
+
+      // ---- CSV ----
+      function downloadCSV() {
+        fetch(`${API_BASE}/export`, {
+          headers: { Authorization: token },
+        })
+          .then((res) => res.blob())
+          .then((blob) => {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "loans.csv";
+            a.click();
+          });
+      }
     </script>
   </body>
 </html>
