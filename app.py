@@ -43,34 +43,58 @@ def predict():
     loan_amount = float(data["loan_amount"])
     credit_score = int(data["credit_score"])
 
-    # 1️⃣ ML prediction
-    ml_prediction = model.predict([[income, age, loan_amount, credit_score]])[0]
+    # Derived feature
+    dti = loan_amount / income
 
-    # 2️⃣ Business rules override
+    # ML prediction (uses DTI-based model)
+    ml_prediction = model.predict([[income, age, credit_score, dti]])[0]
+
+    # ---------------- EXPLAINABLE LOGIC ----------------
+
+    # Hard rejection rules (bank rules)
     if credit_score < 600:
         decision = "Rejected"
-        reason = "Rejected due to low credit score"
-    elif loan_amount > income * 10:
+        reason = "Rejected due to low credit score (below 600)"
+
+    elif dti > 10:
         decision = "Rejected"
-        reason = "Rejected due to loan amount too high compared to income"
+        reason = "Rejected because loan amount is too high compared to income"
+
     elif age < 21:
         decision = "Rejected"
-        reason = "Rejected due to age below minimum eligibility"
-    else:
-        decision = "Approved"
-        reason = "Approved based on acceptable income, credit score, and loan ratio"
+        reason = "Rejected because applicant is below minimum eligible age"
 
-    # 3️⃣ Save to database
+    # ML-based approval / rejection
+    else:
+        decision = ml_prediction
+
+        if decision == "Approved":
+            reason = (
+                "Approved due to acceptable credit score, "
+                "manageable loan-to-income ratio, and stable age profile"
+            )
+        else:
+            if credit_score < 680:
+                reason = "Rejected due to moderate credit score risk"
+            else:
+                reason = "Rejected due to overall financial risk pattern"
+
+    # ---------------- SAVE TO DATABASE ----------------
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
     cursor.execute("""
         INSERT INTO applications (income, age, loan_amount, credit_score, decision, reason)
         VALUES (?, ?, ?, ?, ?, ?)
     """, (income, age, loan_amount, credit_score, decision, reason))
+
     conn.commit()
     conn.close()
 
-    return jsonify({"decision": decision, "reason": reason})
+    return jsonify({
+        "decision": decision,
+        "reason": reason
+    })
 
 
 # ---------------- APPLICATIONS (ADMIN) ----------------
