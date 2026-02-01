@@ -43,7 +43,14 @@
   <body>
     <h2>📋 Loan Applications (Admin Panel)</h2>
 
-    <button onclick="clearData()">Clear All Applications</button><br /><br />
+    <button
+      onclick="clearApplications()"
+      style="background: red; color: white; padding: 8px"
+    >
+      🗑 Clear All Applications
+    </button>
+    <br /><br />
+
     <button onclick="logout()">🚪 Logout</button><br />
     <button onclick="downloadCSV()">⬇ Download CSV</button>
     <br /><br />
@@ -136,6 +143,33 @@
             a.href = URL.createObjectURL(blob);
             a.download = "loans.csv";
             a.click();
+          });
+      }
+
+      function clearApplications() {
+        if (!confirm("Are you sure you want to delete ALL applications?"))
+          return;
+
+        const token = localStorage.getItem("token");
+
+        fetch(`${API_BASE}/clear`, {
+          method: "POST",
+          headers: {
+            Authorization: token,
+          },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+          })
+          .then(() => {
+            alert("All applications cleared");
+            location.reload();
+          })
+          .catch(() => {
+            alert("Session expired. Please login again.");
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
           });
       }
     </script>

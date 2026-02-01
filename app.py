@@ -180,6 +180,20 @@ def export():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=loan_applications.csv"}
     )
+    
+@app.route("/clear", methods=["POST"])
+def clear_applications():
+    token = request.headers.get("Authorization")
+    if token != ADMIN_TOKEN:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM applications")
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "All applications cleared successfully"})
 
 
 # ---------------- RUN ----------------
