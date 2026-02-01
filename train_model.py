@@ -1,22 +1,32 @@
-import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 import joblib
 
-#Feature :
-# [income, age, loan_amount, credit_score]
-X = np.array([
-    [50000, 30, 200000, 750],
-    [300000, 22, 150000, 800],
-    [80000, 45, 300000, 700],
-    [20000, 25, 250000, 850],
-    [90000, 35, 100000, 900],
-])
+# Load dataset
+df = pd.read_csv("loan_data.csv")
 
-#Labels :
-y = ["Approved", "Rejected", "Approved", "Rejected", "Approved"]
+# 🔹 Feature engineering
+df["DTI"] = df["loan_amount"] / df["income"]
 
-model = DecisionTreeClassifier()
-model.fit(X, y)
-joblib.dump(model, 'loan_model.pkl')
+X = df[["income", "age", "credit_score", "DTI"]]
+y = df["decision"]
 
-print("Loan model trained")
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train model
+model = DecisionTreeClassifier(max_depth=5)
+model.fit(X_train, y_train)
+
+# Evaluate
+preds = model.predict(X_test)
+accuracy = accuracy_score(y_test, preds)
+
+print("Model accuracy:", accuracy)
+
+# Save model
+joblib.dump(model, "loan_model.pkl")
