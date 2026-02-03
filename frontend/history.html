@@ -113,7 +113,10 @@
       fetch(`${API_BASE}/stats`, {
         headers: { Authorization: token },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error("Unauthorized");
+          return res.json();
+        })
         .then((data) => {
           document.getElementById("total").innerText = data.total_applications;
           document.getElementById("avgLoan").innerText = data.average_loan;
@@ -130,6 +133,9 @@
               ],
             },
           });
+        })
+        .catch(() => {
+          console.warn("Dashboard not loaded (unauthorized)");
         });
 
       // ---- CSV ----
@@ -171,6 +177,11 @@
             localStorage.removeItem("token");
             window.location.href = "login.html";
           });
+      }
+      function logout() {
+        localStorage.removeItem("token");
+        alert("Logged out successfully");
+        window.location.href = "login.html";
       }
     </script>
   </body>
