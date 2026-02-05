@@ -87,6 +87,10 @@
               data.decision === "Approved" ? "green" : "red";
           });
       }
+      if (data.interest_rate) {
+        document.getElementById("interest").innerText =
+          "Interest Rate: " + data.interest_rate + "%";
+      }
     </script>
   </body>
 </html>
