@@ -79,6 +79,18 @@ def predict():
             else:
                 reason = "Rejected due to overall financial risk pattern"
 
+    # Interest rate calculation (only if approved)
+    interest_rate = None
+
+    if decision == "Approved":
+       if credit_score >= 750 and dti < 4:
+        interest_rate = 8.5
+       elif credit_score >= 700 and dti < 6:
+        interest_rate = 10.5
+       else:
+        interest_rate = 13.0
+    
+
     # ---------------- SAVE TO DATABASE ----------------
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -92,9 +104,11 @@ def predict():
     conn.close()
 
     return jsonify({
-        "decision": decision,
-        "reason": reason
-    })
+    "decision": decision,
+    "reason": reason,
+    "interest_rate": interest_rate
+})
+
 
 
 # ---------------- APPLICATIONS (ADMIN) ----------------
